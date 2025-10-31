@@ -12,40 +12,40 @@ type Task struct {
 }
 
 var taskList = []Task{
-	{Id: 305, Title: "Estudar Go"},
-	{Id: 123, Title: "Estudar Python"},
-	{Id: 758, Title: "Praticar Git"},
-	{Id: 419, Title: "Ler sobre Docker"},
-	{Id: 213, Title: "Aprender SQL"},
-	{Id: 861, Title: "Estudar Algoritmos"},
-	{Id: 132, Title: "Revisar código de projeto"},
-	{Id: 556, Title: "Explorar novas bibliotecas Go"},
-	{Id: 727, Title: "Estudar estrutura de dados"},
-	{Id: 832, Title: "Ler artigo sobre Inteligência Artificial"},
-	{Id: 409, Title: "Desenvolver API com Go"},
-	{Id: 986, Title: "Criar projeto de CRUD em Python"},
-	{Id: 530, Title: "Explorar novas funcionalidades do Docker"},
-	{Id: 845, Title: "Estudar Design Patterns em Go"},
-	{Id: 614, Title: "Analisar código open-source no GitHub"},
-	{Id: 431, Title: "Praticar testes automatizados com Go"},
-	{Id: 372, Title: "Ler sobre arquitetura de software"},
-	{Id: 998, Title: "Estudar sobre computação distribuída"},
-	{Id: 501, Title: "Configurar ambiente de desenvolvimento em Docker"},
-	{Id: 291, Title: "Criar projeto de microserviço com Go"},
-	{Id: 694, Title: "Aprender sobre UX/UI Design"},
-	{Id: 520, Title: "Explorar ferramentas de prototipagem como Figma"},
-	{Id: 307, Title: "Ler sobre marketing digital e SEO"},
-	{Id: 712, Title: "Estudar criação de conteúdo para mídias sociais"},
-	{Id: 840, Title: "Aprender desenvolvimento para dispositivos móveis"},
-	{Id: 640, Title: "Desenvolver uma aplicação web com React"},
-	{Id: 921, Title: "Estudar JavaScript avançado"},
-	{Id: 498, Title: "Ler sobre segurança em desenvolvimento web"},
-	{Id: 563, Title: "Fazer curso de Machine Learning básico"},
-	{Id: 142, Title: "Estudar sobre computação quântica"},
-	{Id: 811, Title: "Aprender sobre Blockchain e criptomoedas"},
-	{Id: 365, Title: "Explorar ferramentas de CI/CD como Jenkins"},
-	{Id: 276, Title: "Estudar teoria de redes e protocolos de comunicação"},
-	{Id: 588, Title: "Ler sobre desenvolvimento ágil e Scrum"},
+	{Id: 1, Title: "Estudar Go"},
+	{Id: 2, Title: "Estudar Python"},
+	{Id: 3, Title: "Praticar Git"},
+	{Id: 4, Title: "Ler sobre Docker"},
+	{Id: 5, Title: "Aprender SQL"},
+	{Id: 6, Title: "Estudar Algoritmos"},
+	{Id: 7, Title: "Revisar código de projeto"},
+	{Id: 8, Title: "Explorar novas bibliotecas Go"},
+	{Id: 9, Title: "Estudar estrutura de dados"},
+	{Id: 10, Title: "Ler artigo sobre Inteligência Artificial"},
+	{Id: 11, Title: "Desenvolver API com Go"},
+	{Id: 12, Title: "Criar projeto de CRUD em Python"},
+	{Id: 13, Title: "Explorar novas funcionalidades do Docker"},
+	{Id: 14, Title: "Estudar Design Patterns em Go"},
+	{Id: 15, Title: "Analisar código open-source no GitHub"},
+	{Id: 16, Title: "Praticar testes automatizados com Go"},
+	{Id: 17, Title: "Ler sobre arquitetura de software"},
+	{Id: 18, Title: "Estudar sobre computação distribuída"},
+	{Id: 19, Title: "Configurar ambiente de desenvolvimento em Docker"},
+	{Id: 20, Title: "Criar projeto de microserviço com Go"},
+	{Id: 21, Title: "Aprender sobre UX/UI Design"},
+	{Id: 22, Title: "Explorar ferramentas de prototipagem como Figma"},
+	{Id: 23, Title: "Ler sobre marketing digital e SEO"},
+	{Id: 24, Title: "Estudar criação de conteúdo para mídias sociais"},
+	{Id: 25, Title: "Aprender desenvolvimento para dispositivos móveis"},
+	{Id: 26, Title: "Desenvolver uma aplicação web com React"},
+	{Id: 27, Title: "Estudar JavaScript avançado"},
+	{Id: 28, Title: "Ler sobre segurança em desenvolvimento web"},
+	{Id: 29, Title: "Fazer curso de Machine Learning básico"},
+	{Id: 30, Title: "Estudar sobre computação quântica"},
+	{Id: 31, Title: "Aprender sobre Blockchain e criptomoedas"},
+	{Id: 32, Title: "Explorar ferramentas de CI/CD como Jenkins"},
+	{Id: 33, Title: "Estudar teoria de redes e protocolos de comunicação"},
+	{Id: 34, Title: "Ler sobre desenvolvimento ágil e Scrum"},
 }
 
 func main() {
@@ -60,6 +60,22 @@ func main() {
 
 	router.GET("/tasks", func(ctx *gin.Context) {
 		ctx.IndentedJSON(http.StatusOK, taskList)
+	})
+
+	router.POST("/tasks", func(ctx *gin.Context) {
+		var newTask Task
+
+		if error := ctx.BindJSON(&newTask); error != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": error.Error(),
+			})
+			return
+		}
+
+		newTask.Id = len(taskList) + 1
+		taskList = append(taskList, newTask)
+
+		ctx.JSON(http.StatusOK, newTask)
 	})
 
 	router.Run(":3000")
