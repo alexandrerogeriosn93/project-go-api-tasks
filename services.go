@@ -89,10 +89,22 @@ func CreateTask(ctx *gin.Context) {
 		return
 	}
 
-	newTask.Id = len(taskList) + 1
-	taskList = append(taskList, newTask)
+	result, error := DB.Exec("INSERT INTO tasks (title) VALUES (?)", newTask.Title)
 
-	ctx.JSON(http.StatusOK, newTask)
+	if error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": error.Error()})
+		return
+	}
+
+	id, error := result.LastInsertId()
+
+	if error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": error.Error()})
+		return
+	}
+
+	newTask.Id = int(id)
+	ctx.JSON(http.StatusCreated, newTask)
 }
 
 func GetTaskById(ctx *gin.Context) {
