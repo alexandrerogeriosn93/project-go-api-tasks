@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -109,15 +110,20 @@ func CreateTask(ctx *gin.Context) {
 
 func GetTaskById(ctx *gin.Context) {
 	id := ctx.Param("id")
+	var task Task
+	row := DB.QueryRow("SELECT id, title FROM tasks WHERE id = ?", id)
 
-	for _, task := range taskList {
-		if fmt.Sprintf("%d", task.Id) == id {
-			ctx.JSON(http.StatusOK, task)
+	if error := row.Scan(&task.Id, &task.Title); error != nil {
+		if error == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
 			return
 		}
+
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": error.Error()})
+		return
 	}
 
-	ctx.JSON(http.StatusNotFound, gin.H{"message": "Task não encontrada"})
+	ctx.JSON(http.StatusOK, task)
 }
 
 func DeleteTaskById(ctx *gin.Context) {
