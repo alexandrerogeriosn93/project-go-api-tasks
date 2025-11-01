@@ -106,5 +106,30 @@ func main() {
 		ctx.JSON(http.StatusNotFound, gin.H{"message": "Task não encontrada"})
 	})
 
+	router.PUT("/tasks/:id", func(ctx *gin.Context) {
+		id := ctx.Param("id")
+		var updatedTask Task
+
+		if error := ctx.BindJSON(&updatedTask); error != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"message": error.Error(),
+			})
+			return
+		}
+
+		for index, task := range taskList {
+			if fmt.Sprintf("%d", task.Id) == id {
+				updatedTask.Id = task.Id
+				taskList[index] = updatedTask
+				ctx.JSON(http.StatusOK, gin.H{
+					"message": "Task atualizada com sucesso",
+				})
+				return
+			}
+		}
+
+		ctx.JSON(http.StatusNotFound, gin.H{"message": "Task não encontrada"})
+	})
+
 	router.Run(":3000")
 }
