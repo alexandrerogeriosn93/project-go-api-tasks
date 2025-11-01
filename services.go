@@ -128,16 +128,18 @@ func GetTaskById(ctx *gin.Context) {
 
 func DeleteTaskById(ctx *gin.Context) {
 	id := ctx.Param("id")
+	_, error := DB.Exec("DELETE FROM tasks WHERE id = ?", id)
 
-	for index, task := range taskList {
-		if fmt.Sprintf("%d", task.Id) == id {
-			taskList = append(taskList[:index], taskList[index+1:]...)
-			ctx.JSON(http.StatusOK, gin.H{"message": "Task deletada com sucesso"})
+	if error != nil {
+		if error == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
 			return
 		}
-	}
 
-	ctx.JSON(http.StatusNotFound, gin.H{"message": "Task não encontrada"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": error.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "Task deletada com sucesso"})
 }
 
 func UpdateTaskById(ctx *gin.Context) {
