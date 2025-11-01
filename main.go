@@ -92,5 +92,19 @@ func main() {
 		ctx.JSON(http.StatusNotFound, gin.H{"message": "Task não encontrada"})
 	})
 
+	router.DELETE("/tasks/:id", func(ctx *gin.Context) {
+		id := ctx.Param("id")
+
+		for index, task := range taskList {
+			if fmt.Sprintf("%d", task.Id) == id {
+				taskList = append(taskList[:index], taskList[index+1:]...)
+				ctx.JSON(http.StatusOK, gin.H{"message": "Task deletada com sucesso"})
+				return
+			}
+		}
+
+		ctx.JSON(http.StatusNotFound, gin.H{"message": "Task não encontrada"})
+	})
+
 	router.Run(":3000")
 }
