@@ -2,8 +2,8 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -143,26 +143,26 @@ func DeleteTaskById(ctx *gin.Context) {
 }
 
 func UpdateTaskById(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id, _ := strconv.Atoi(ctx.Param("id"))
 	var updatedTask Task
 
 	if error := ctx.BindJSON(&updatedTask); error != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": error.Error(),
-		})
+		if error == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
+			return
+		}
+
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": error.Error()})
 		return
 	}
 
-	for index, task := range taskList {
-		if fmt.Sprintf("%d", task.Id) == id {
-			updatedTask.Id = task.Id
-			taskList[index] = updatedTask
-			ctx.JSON(http.StatusOK, gin.H{
-				"message": "Task atualizada com sucesso",
-			})
-			return
-		}
+	_, error := DB.Exec("UPDATE tasks SET title = ? WHERE id = ?", updatedTask.Title, id)
+
+	if error != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": error.Error()})
+		return
 	}
 
-	ctx.JSON(http.StatusNotFound, gin.H{"message": "Task não encontrada"})
+	updatedTask.Id = id
+	ctx.JSON(http.StatusOK, gin.H{"message": "Task atualizada com sucesso"})
 }
