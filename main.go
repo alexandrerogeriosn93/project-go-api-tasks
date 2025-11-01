@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -76,6 +77,19 @@ func main() {
 		taskList = append(taskList, newTask)
 
 		ctx.JSON(http.StatusOK, newTask)
+	})
+
+	router.GET("/tasks/:id", func(ctx *gin.Context) {
+		id := ctx.Param("id")
+
+		for _, task := range taskList {
+			if fmt.Sprintf("%d", task.Id) == id {
+				ctx.JSON(http.StatusOK, task)
+				return
+			}
+		}
+
+		ctx.JSON(http.StatusNotFound, gin.H{"message": "Task não encontrada"})
 	})
 
 	router.Run(":3000")
