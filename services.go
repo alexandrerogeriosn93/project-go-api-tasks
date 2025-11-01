@@ -13,54 +13,16 @@ type Task struct {
 	Title string `json:"title"`
 }
 
-var taskList = []Task{
-	{Id: 1, Title: "Estudar Go"},
-	{Id: 2, Title: "Estudar Python"},
-	{Id: 3, Title: "Praticar Git"},
-	{Id: 4, Title: "Ler sobre Docker"},
-	{Id: 5, Title: "Aprender SQL"},
-	{Id: 6, Title: "Estudar Algoritmos"},
-	{Id: 7, Title: "Revisar código de projeto"},
-	{Id: 8, Title: "Explorar novas bibliotecas Go"},
-	{Id: 9, Title: "Estudar estrutura de dados"},
-	{Id: 10, Title: "Ler artigo sobre Inteligência Artificial"},
-	{Id: 11, Title: "Desenvolver API com Go"},
-	{Id: 12, Title: "Criar projeto de CRUD em Python"},
-	{Id: 13, Title: "Explorar novas funcionalidades do Docker"},
-	{Id: 14, Title: "Estudar Design Patterns em Go"},
-	{Id: 15, Title: "Analisar código open-source no GitHub"},
-	{Id: 16, Title: "Praticar testes automatizados com Go"},
-	{Id: 17, Title: "Ler sobre arquitetura de software"},
-	{Id: 18, Title: "Estudar sobre computação distribuída"},
-	{Id: 19, Title: "Configurar ambiente de desenvolvimento em Docker"},
-	{Id: 20, Title: "Criar projeto de microserviço com Go"},
-	{Id: 21, Title: "Aprender sobre UX/UI Design"},
-	{Id: 22, Title: "Explorar ferramentas de prototipagem como Figma"},
-	{Id: 23, Title: "Ler sobre marketing digital e SEO"},
-	{Id: 24, Title: "Estudar criação de conteúdo para mídias sociais"},
-	{Id: 25, Title: "Aprender desenvolvimento para dispositivos móveis"},
-	{Id: 26, Title: "Desenvolver uma aplicação web com React"},
-	{Id: 27, Title: "Estudar JavaScript avançado"},
-	{Id: 28, Title: "Ler sobre segurança em desenvolvimento web"},
-	{Id: 29, Title: "Fazer curso de Machine Learning básico"},
-	{Id: 30, Title: "Estudar sobre computação quântica"},
-	{Id: 31, Title: "Aprender sobre Blockchain e criptomoedas"},
-	{Id: 32, Title: "Explorar ferramentas de CI/CD como Jenkins"},
-	{Id: 33, Title: "Estudar teoria de redes e protocolos de comunicação"},
-	{Id: 34, Title: "Ler sobre desenvolvimento ágil e Scrum"},
-}
-
 func MainRoute(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Hello world",
-	})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Hello world"})
 }
 
 func GetAllTasks(ctx *gin.Context) {
-	rows, error := DB.Query("SELECT id, title FROM tasks")
+	rows, err := DB.Query("SELECT id, title FROM tasks")
 
-	if error != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": error.Error()})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	defer rows.Close()
@@ -70,8 +32,8 @@ func GetAllTasks(ctx *gin.Context) {
 	for rows.Next() {
 		var task Task
 
-		if error := rows.Scan(&task.Id, &task.Title); error != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": error.Error()})
+		if err := rows.Scan(&task.Id, &task.Title); err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		tasks = append(tasks, task)
@@ -83,24 +45,22 @@ func GetAllTasks(ctx *gin.Context) {
 func CreateTask(ctx *gin.Context) {
 	var newTask Task
 
-	if error := ctx.BindJSON(&newTask); error != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": error.Error(),
-		})
+	if err := ctx.BindJSON(&newTask); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	result, error := DB.Exec("INSERT INTO tasks (title) VALUES (?)", newTask.Title)
+	result, err := DB.Exec("INSERT INTO tasks (title) VALUES (?)", newTask.Title)
 
-	if error != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": error.Error()})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	id, error := result.LastInsertId()
+	id, err := result.LastInsertId()
 
-	if error != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": error.Error()})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -113,13 +73,13 @@ func GetTaskById(ctx *gin.Context) {
 	var task Task
 	row := DB.QueryRow("SELECT id, title FROM tasks WHERE id = ?", id)
 
-	if error := row.Scan(&task.Id, &task.Title); error != nil {
-		if error == sql.ErrNoRows {
+	if err := row.Scan(&task.Id, &task.Title); err != nil {
+		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
 			return
 		}
 
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": error.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -128,41 +88,41 @@ func GetTaskById(ctx *gin.Context) {
 
 func DeleteTaskById(ctx *gin.Context) {
 	id := ctx.Param("id")
-	_, error := DB.Exec("DELETE FROM tasks WHERE id = ?", id)
+	_, err := DB.Exec("DELETE FROM tasks WHERE id = ?", id)
 
-	if error != nil {
-		if error == sql.ErrNoRows {
+	if err != nil {
+		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
 			return
 		}
 
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": error.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"message": "Task deletada com sucesso"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Task deleted"})
 }
 
 func UpdateTaskById(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	var updatedTask Task
 
-	if error := ctx.BindJSON(&updatedTask); error != nil {
-		if error == sql.ErrNoRows {
+	if err := ctx.BindJSON(&updatedTask); err != nil {
+		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
 			return
 		}
 
-		ctx.JSON(http.StatusInternalServerError, gin.H{"message": error.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
-	_, error := DB.Exec("UPDATE tasks SET title = ? WHERE id = ?", updatedTask.Title, id)
+	_, err := DB.Exec("UPDATE tasks SET title = ? WHERE id = ?", updatedTask.Title, id)
 
-	if error != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": error.Error()})
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	updatedTask.Id = id
-	ctx.JSON(http.StatusOK, gin.H{"message": "Task atualizada com sucesso"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Task updated"})
 }
