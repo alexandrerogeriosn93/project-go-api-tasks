@@ -1,11 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"net/http"
-
-	"github.com/gin-gonic/gin"
-)
+import "github.com/gin-gonic/gin"
 
 type Task struct {
 	Id    int    `json:"id"`
@@ -50,82 +45,10 @@ var taskList = []Task{
 }
 
 func RegisterRoutes(router *gin.Engine) {
-
-	router.GET("/", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{
-			"message": "Hello world",
-		})
-	})
-
-	router.GET("/tasks", func(ctx *gin.Context) {
-		ctx.IndentedJSON(http.StatusOK, taskList)
-	})
-
-	router.POST("/tasks", func(ctx *gin.Context) {
-		var newTask Task
-
-		if error := ctx.BindJSON(&newTask); error != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"error": error.Error(),
-			})
-			return
-		}
-
-		newTask.Id = len(taskList) + 1
-		taskList = append(taskList, newTask)
-
-		ctx.JSON(http.StatusOK, newTask)
-	})
-
-	router.GET("/tasks/:id", func(ctx *gin.Context) {
-		id := ctx.Param("id")
-
-		for _, task := range taskList {
-			if fmt.Sprintf("%d", task.Id) == id {
-				ctx.JSON(http.StatusOK, task)
-				return
-			}
-		}
-
-		ctx.JSON(http.StatusNotFound, gin.H{"message": "Task não encontrada"})
-	})
-
-	router.DELETE("/tasks/:id", func(ctx *gin.Context) {
-		id := ctx.Param("id")
-
-		for index, task := range taskList {
-			if fmt.Sprintf("%d", task.Id) == id {
-				taskList = append(taskList[:index], taskList[index+1:]...)
-				ctx.JSON(http.StatusOK, gin.H{"message": "Task deletada com sucesso"})
-				return
-			}
-		}
-
-		ctx.JSON(http.StatusNotFound, gin.H{"message": "Task não encontrada"})
-	})
-
-	router.PUT("/tasks/:id", func(ctx *gin.Context) {
-		id := ctx.Param("id")
-		var updatedTask Task
-
-		if error := ctx.BindJSON(&updatedTask); error != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"message": error.Error(),
-			})
-			return
-		}
-
-		for index, task := range taskList {
-			if fmt.Sprintf("%d", task.Id) == id {
-				updatedTask.Id = task.Id
-				taskList[index] = updatedTask
-				ctx.JSON(http.StatusOK, gin.H{
-					"message": "Task atualizada com sucesso",
-				})
-				return
-			}
-		}
-
-		ctx.JSON(http.StatusNotFound, gin.H{"message": "Task não encontrada"})
-	})
+	router.GET("/", MainRoute)
+	router.GET("/tasks", GetAllTasks)
+	router.POST("/tasks", CreateTask)
+	router.GET("/tasks/:id", GetTaskById)
+	router.DELETE("/tasks/:id", DeleteTaskById)
+	router.PUT("/tasks/:id", UpdateTaskById)
 }
